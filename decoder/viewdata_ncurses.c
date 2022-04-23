@@ -30,6 +30,7 @@ void update_row(const int x, const int y, const int row)
 
 	move(row+y, x);
 	for (col=0; col<VD_COLS; col++) {
+		//Fixme: Handle blinking and hold mosaics
 		int c=viewdata_get_cell(row, col);
 		if ( ((c>=0x00) && (c<=0x07)) ||
 		     ((c>=0x10) && (c<=0x17))) {
