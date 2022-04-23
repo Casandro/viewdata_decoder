@@ -5,3 +5,5 @@
 
 int viewdata_connect_and_init(const char *ip, int port);
 int viewdata_handle_stuff(const int input);
+int viewdata_send_initiator();
+int viewdata_send_terminator();
