@@ -55,7 +55,11 @@ int viewdata_handle_socket(const int sockfd)
 int viewdata_send_to_socket(const int sockfd, const char c)
 {
 	char b=c;
-	return write(sockfd, &b, 1);
+	ssize_t res=write(sockfd, &b, 1);
+	if (res!=1) {
+		fprintf(stderr,"viewdata_send_to_socket, error: %d %d\n", errno, res);
+	}
+	return 0;
 }
 
 int viewdata_connect(const char *ip, const int port)
@@ -68,6 +72,6 @@ int viewdata_connect(const char *ip, const int port)
 int viewdata_handle(int input)
 {
 	if (sockfd<0) return -1;
-	if (input>=0) viewdata_send_to_socket(sockfd, input);
+	if ((input>=0) && (input<256)) viewdata_send_to_socket(sockfd, input);
 	return viewdata_handle_socket(sockfd);
 }
