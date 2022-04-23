@@ -1,6 +1,11 @@
+/*This is an example frontent for the decoder. It interfaces to the decoder via viewdata_interface.h
+ * This code is responsible for handling keyboard input and displaying/processing the screen buffer
+ */
+
 #include <curses.h>
 #include <locale.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "viewdata_screen.h"
 #include "viewdata_interface.h"
@@ -58,6 +63,7 @@ void update_screen(const int x, const int y)
 	for (row=0; row<VD_ROWS; row++) {
 		update_row(x, y, row);
 	}
+	attron(COLOR_PAIR(7));
 }
 
 void init_colourpairs_(int bgnum, int bg)
@@ -85,13 +91,23 @@ void init_colourpairs()
 	init_colourpairs_(7, COLOR_WHITE);
 }
 
+void print_status(int x, int y)
+{
+	move(y, x);
+	struct timeval t;
+	gettimeofday(&t, NULL);
+	printw("Time: %06ld.%06ld; Press _ for Enter, F10 for Exit", t.tv_sec, t.tv_usec);
+}
 
 int inputloop()
 {
+	int ch=-1;
 	while (0==0) {
-		update_screen(1,1);
+		update_screen(0,0);
+		print_status(0,25);
 		refresh();
-		int ch=getch();
+		ch=getch();
+		if (ch==KEY_F(10)) return 0; else
 		viewdata_handle_stuff(ch);
 	}
 }
@@ -100,14 +116,14 @@ int main()
 {
 	setlocale(LC_ALL, "");
 	int res=0;
-	res=viewdata_connect_and_init("127.0.0.1", 6502);
+	res=viewdata_connect_and_init("51.68.195.248", 23280);
 	if (res<0) {
 		fprintf(stderr, "Couldn't connect\n");
 		return 0;
 	}
 	initscr();
 	keypad(stdscr, TRUE);
-	timeout(30000);
+	timeout(300);
 	init_colourpairs();
 	inputloop();
 
