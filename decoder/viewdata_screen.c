@@ -103,6 +103,7 @@ int viewdata_handle_character(viewdata_screen_t *s, const uint8_t c)
 		s->tstate=0;
 		return -1;
 	}
+	if (c==0x00) return 0;
 	if (c==0x1B) {
 		s->tstate=1; //ESC received
 		return -1;
