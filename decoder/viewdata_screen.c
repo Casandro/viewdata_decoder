@@ -78,6 +78,8 @@ int viewdata_clear_screen(viewdata_screen_t *s)
 			viewdata_set_cell(s, y, x, ' ');
 		}
 	}
+	s->col=0;
+	s->row=0;
 	return 0;
 }
 
