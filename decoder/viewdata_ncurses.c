@@ -32,6 +32,7 @@ void update_row(const int x, const int y, const int row)
 	int fg=7;
 	int mosaic=0; //0: text; 1: mosaic; 2: separated graphics
 	int col=0;
+	int blink=0;
 
 	move(row+y, x);
 	for (col=0; col<VD_COLS; col++) {
@@ -44,9 +45,12 @@ void update_row(const int x, const int y, const int row)
 		}
 		if (c==0x1d) bg=fg; //New Background
 		if (c==0x1c) bg=0; //Black background
+		if (c==0x08) blink=1;
+		if (c==0x09) blink=0;
 
 		int cpn=bg*8+fg;
 		attron(COLOR_PAIR(cpn));
+		if (blink==1) attron(A_BLINK); else attroff(A_BLINK);
 		
 		if (c<0x20) {
 			printw(" ", c);
