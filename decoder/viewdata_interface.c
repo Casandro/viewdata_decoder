@@ -15,12 +15,3 @@ int viewdata_handle_stuff(const int input)
 	return viewdata_handle(input);
 };
 
-int viewdata_send_initiator()
-{
-	return viewdata_handle_stuff(0x13);
-}
-
-int viewdata_send_terminator()
-{
-	return viewdata_handle_stuff(0x1C);
-}
