@@ -57,7 +57,7 @@ int viewdata_send_to_socket(const int sockfd, const char c)
 	char b=c;
 	ssize_t res=write(sockfd, &b, 1);
 	if (res!=1) {
-		fprintf(stderr,"viewdata_send_to_socket, error: %d %d\n", errno, res);
+		fprintf(stderr,"viewdata_send_to_socket, error: %d %ld\n", errno, res);
 	}
 	return 0;
 }
