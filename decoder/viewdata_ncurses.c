@@ -6,6 +6,7 @@
 #include <locale.h>
 #include <string.h>
 #include <sys/time.h>
+#include <stdlib.h>
 
 #include "viewdata_screen.h"
 #include "viewdata_interface.h"
@@ -86,11 +87,15 @@ int inputloop()
 	}
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+	if (argc!=3) {
+		fprintf(stderr, "Usage: %s <hostname> <port>\n\tFor example: %s nx.nxtel.org 23280\n", argv[0], argv[0]);
+		return 1;
+	}
 	setlocale(LC_ALL, "");
 	int res=0;
-	res=viewdata_connect_and_init("51.68.195.248", 23280);
+	res=viewdata_connect_and_init(argv[1], atoi(argv[2]));
 	if (res<0) {
 		fprintf(stderr, "Couldn't connect\n");
 		return 0;
