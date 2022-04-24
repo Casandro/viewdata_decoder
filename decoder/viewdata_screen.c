@@ -3,10 +3,10 @@
 #include "viewdata_screen.h"
 
 typedef struct {
-	int row; //Row 0-23 of the cursor
-	int col; //Column 0-39 for the cursor
-	int cstate; //Cursor state: 0: invisible; 1: visible
-	int tstate; //Terminal state: 0: normal, 1: ESC received, 2: APA received, 3: second APA character
+	int8_t row; //Row 0-23 of the cursor
+	int8_t col; //Column 0-39 for the cursor
+	uint8_t cstate; //Cursor state: 0: invisible; 1: visible
+	uint8_t tstate; //Terminal state: 0: normal, 1: ESC received, 2: APA received, 3: second APA character
 	uint8_t cells[VD_ROWS][VD_COLS]; //character cells for this screen
 } viewdata_screen_t;
 
