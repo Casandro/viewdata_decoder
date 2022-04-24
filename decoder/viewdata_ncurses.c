@@ -34,12 +34,36 @@ void update_row(const int x, const int y, const int row)
 
 void update_screen(const int x, const int y)
 {
-	int row=0;
-	for (row=0; row<VD_ROWS; row++) {
+	for (int row=0; row<VD_ROWS; row++) {
 		update_row(x, y, row);
 	}
 	attron(COLOR_PAIR(7));
 }
+
+void print_debugdata(const int x, const int y)
+{
+	for (int row=0; row<VD_ROWS; row++) {
+		move(row+y,x);
+		for (int col=0; col<VD_COLS; col++) {
+			int c=viewdata_get_cell(row, col);
+			if (c==0x20) {
+				attron(COLOR_PAIR(4));
+				printw(" . ");
+			} else
+			if ( (c>=0x20) && (c<0x7f) ) {
+				attron(COLOR_PAIR(2));
+				printw(" %c ", c);
+			} else {
+				attron(COLOR_PAIR(1));
+				printw("%02x ", c);
+			}
+		}
+	}
+	attron(COLOR_PAIR(7));
+}
+
+
+
 
 void init_colourpairs_(int bgnum, int bg)
 {
@@ -71,19 +95,27 @@ void print_status(int x, int y)
 	move(y, x);
 	struct timeval t;
 	gettimeofday(&t, NULL);
-	printw("Time: %06ld.%06ld; Press _ for Enter, F10 for Exit", t.tv_sec, t.tv_usec);
+	printw("Time: %06ld.%06ld; Press _ for Enter, F10 for Exit, F12 debug", t.tv_sec, t.tv_usec);
 }
 
 int inputloop()
 {
+	int debug=0;
 	int changes=1;
 	int ch=-1;
 	while (0==0) {
-		if (changes>0) update_screen(0,0); //Only update screen if something has changed
-		print_status(0,25);
-		refresh();
+		if (changes>0) {
+			update_screen(0,0); //Only update screen if something has changed
+			print_status(0,25);
+			if (debug!=0) print_debugdata(0,26);
+			refresh();
+		}
 		ch=getch();
 		if (ch==KEY_F(10)) return 0; else
+		if (ch==KEY_F(12)) {
+			debug=(debug+1)%2; 
+			changes=1;
+		}else
 		changes=viewdata_handle_stuff(ch);
 	}
 }
