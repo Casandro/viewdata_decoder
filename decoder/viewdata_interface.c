@@ -52,9 +52,11 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 		}
 	}
 	int mosaic=0;
-	int last_mosaic_glyph=0;
+	int last_mosaic_glyph=-1;
 	int hold_mosaic=0;
 	int blink=0;
+	int underline=0; //Underline/segmented
+	int concealed=0;
 	int fg=7;
 	int bg=0;
 	int size=0;
@@ -65,22 +67,28 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 		else c=viewdata_get_cell(row-1, col);
 
 
-		if ( ((c>=0x00) && (c<=0x07)) ||
-		     ((c>=0x10) && (c<=0x17))) {
-			fg=c&0x07;
-			if (c>=0x10) mosaic=1; else mosaic=0;
-		}
+
+		//Set-at codes
 		if (c==0x1d) bg=fg; //New Background
 		if (c==0x1c) bg=0; //Black background
-		if (c==0x08) blink=1;
-		if (c==0x09) blink=0;
-		if (c==0x0c) size=0; //normal height
-		if (c==0x0d) size=1; //double height
-		if (c==0x1e) hold_mosaic=last_mosaic_glyph; //hold mosaic on
+
+		if (c==0x0c) { //normal height
+			if (size!=0) last_mosaic_glyph=0;
+			size=0; //normal height
+		}
+
+		if (c==0x1e) { //hold mosaics on
+			hold_mosaic=1;
+		}
+		if (c==0x19) underline=1; //Separated graphics/underline
+		if (c==0x1A) underline=1; //Continuous graphics
+		if (c==0x18) concealed=1; //Concealed
 
 		cells[col].blink=blink;
 		cells[col].fg=fg;
 		cells[col].bg=bg;
+		cells[col].underline=underline;
+		cells[col].concealed=concealed;
 		
 		if ( (size==0) && (dh_low==1) ) {
 			//This is a lower double height row, but normal sized characters
@@ -91,7 +99,12 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 			else cells[col].size=2; //Otherwise set to lower half
 			
 			if (c<0x20) { //attribute characters
-				cells[col].glyph=hold_mosaic; //...lead to spaces or hold mosaic
+				if (hold_mosaic<=0) cells[col].glyph=0; //...lead to spaces if no hold mosaic
+				else { //If hold mosaic, use previous glyph
+					if ((last_mosaic_glyph>0) ) {
+						cells[col].glyph=last_mosaic_glyph;
+					} else cells[col].glyph=0;
+				}
 			} else if (c>=0x80) {
 				//High bit set
 				cells[col].glyph=0; // set to spaces for now
@@ -106,6 +119,27 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 				}
 			}
 		}
+		//Set-After codes
 		if (c==0x1f) hold_mosaic=0; //release mosaics
+		//Colour codes
+		if ( ((c>=0x00) && (c<=0x07)) ||
+		     ((c>=0x10) && (c<=0x17))) {
+			fg=c&0x07;
+			if (c>=0x10) {
+				if (mosaic!=1) last_mosaic_glyph=0;
+				mosaic=1;
+			}
+		       	else {
+				if (mosaic!=0) last_mosaic_glyph=0;
+				mosaic=0;
+			}
+			concealed=0; //Colour codes reveal text
+		}
+		if (c==0x08) blink=1; //Flash
+		if (c==0x09) blink=0; //Steady
+		if (c==0x0d) { //double height
+			if (size!=1) last_mosaic_glyph=0;
+			size=1;
+		}
 	}
 }

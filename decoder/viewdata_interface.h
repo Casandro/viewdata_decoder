@@ -9,6 +9,8 @@ typedef struct {
 	unsigned int bg:3; //Background colour 0:black, 1:red, 2:green, 3:yellow, 4:blue, 5:magenta, 6:cyan, 7:white 
 	unsigned int blink:1; //blink mode 0:stead, 1:blink
 	unsigned int size:2; //0:regular size, 1:double size top, 2: double size bottom
+	unsigned int underline:1; //0:regular, 1:underline/separated graphics
+	unsigned int concealed:1; //0:visible, 2:only visible after reveal pressed
 } viewdata_decoded_cell_t;
 
 
