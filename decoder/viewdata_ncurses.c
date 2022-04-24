@@ -10,56 +10,24 @@
 #include "viewdata_screen.h"
 #include "viewdata_interface.h"
 
-char *tt_to_utf8[2][96]={
-	{
-	" ", "!","\"", "#", "¤", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
-	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
-	"@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
-	"P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[","\\", "]", "^", "_",
-	"`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o",
-	"p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "■"},
-	{
-	" ", "🬀", "🬁", "🬂", "🬃", "🬄", "🬅", "🬆", "🬇", "🬈", "🬉", "🬊", "🬋", "🬌", "🬍", "🬎",
-	"🬏", "🬐", "🬑", "🬒", "🬓", "▌", "🬔", "🬕", "🬖", "🬗", "🬘", "🬙", "🬚", "🬛", "🬜", "🬝",
-	"@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
-	"P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "←", "½", "→", "↑", "⌗",
-	"🬞", "🬟", "🬠", "🬡", "🬢", "🬣", "🬤", "🬥", "🬦", "🬧", "▐", "🬨", "🬩", "🬪", "🬫", "🬬",
-	"🬭", "🬮", "🬯", "🬰", "🬱", "🬲", "🬳", "🬴", "🬵", "🬶", "🬷", "🬸", "🬹", "🬺", "🬻", "█"}};
-
 void update_row(const int x, const int y, const int row)
 {
-	int bg=0;
-	int fg=7;
-	int mosaic=0; //0: text; 1: mosaic; 2: separated graphics
-	int col=0;
-	int blink=0;
+	viewdata_decoded_cell_t cells[VD_COLS];
+	viewdata_convert_row(row, cells);
 
 	move(row+y, x);
-	for (col=0; col<VD_COLS; col++) {
-		//Fixme: Handle blinking and hold mosaics
-		int c=viewdata_get_cell(row, col);
-		if ( ((c>=0x00) && (c<=0x07)) ||
-		     ((c>=0x10) && (c<=0x17))) {
-			fg=c&0x07;
-			if (c>=0x10) mosaic=1; else mosaic=0;
-		}
-		if (c==0x1d) bg=fg; //New Background
-		if (c==0x1c) bg=0; //Black background
-		if (c==0x08) blink=1;
-		if (c==0x09) blink=0;
-
+	for (int col=0; col<VD_COLS; col++) {
+		int bg=cells[col].bg;
+		int fg=cells[col].fg;
+		int blink=cells[col].blink;
+		int glyph=cells[col].glyph;
 		int cpn=bg*8+fg;
 		attron(COLOR_PAIR(cpn));
 		if (blink==1) attron(A_BLINK); else attroff(A_BLINK);
-		
-		if (c<0x20) {
-			printw(" ", c);
-		} else if (c<0x80) printw("%s", tt_to_utf8[mosaic][c-32]);
-		else {
-			printw("X");
-		}
+		printw("%s", viewdata_glyph_to_utf8(glyph));
 	}
 }
+
 
 void update_screen(const int x, const int y)
 {
