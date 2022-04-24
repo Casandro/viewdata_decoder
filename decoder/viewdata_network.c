@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <string.h>
 
 #include "viewdata_network.h"
 #include "viewdata_screen.h"
@@ -16,19 +17,26 @@
 
 static int sockfd=-1;
 
-int viewdata_connect_socket(const char *ip, const int port)
+int viewdata_connect_socket(const char *hostname, const int port)
 {
-	int sockfd=socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd==-1) return sockfd;
-	fprintf(stderr, "viewdata connect %s %d\n", ip, port);
-	struct sockaddr_in servaddr;
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family=AF_INET;
-	servaddr.sin_addr.s_addr= inet_addr(ip);
-	servaddr.sin_port=htons(port);
-	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr))!=0) {
-		fprintf(stderr, "Couldn't connect to %s:%d\n", ip, port);
+	struct hostent *h=gethostbyname(hostname);
+	if (h==NULL) {
+		fprintf(stderr, "Couldn't resolve hostname %s\n", hostname);
 		return -1;
+	}
+	int sockfd=socket(h->h_addrtype, SOCK_STREAM, 0);
+	if (sockfd==-1) return sockfd;
+	fprintf(stderr, "viewdata connect %s %d\n", hostname, port);
+	if (h->h_addrtype==AF_INET) {
+		struct sockaddr_in servaddr;
+		memset(&servaddr, 0, sizeof(servaddr));
+		servaddr.sin_family=AF_INET;
+		memcpy(&(servaddr.sin_addr.s_addr), h->h_addr, 4);
+		servaddr.sin_port=htons(port);
+		if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr))!=0) {
+			fprintf(stderr, "Couldn't connect to %s:%d\n", hostname, port);
+			return -1;
+		}
 	}
 	struct timeval tv;
 	tv.tv_sec=0;
@@ -62,9 +70,9 @@ int viewdata_send_to_socket(const int sockfd, const char c)
 	return 0;
 }
 
-int viewdata_connect(const char *ip, const int port)
+int viewdata_connect(const char *hostname, const int port)
 {
-	sockfd=viewdata_connect_socket(ip, port);
+	sockfd=viewdata_connect_socket(hostname, port);
 	if (sockfd<0) return -1;
 	return viewdata_handle_socket(sockfd);
 }
