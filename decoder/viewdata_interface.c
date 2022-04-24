@@ -41,13 +41,28 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 {
 	if (cells==NULL) return;
 	if (row<0) return;
+	int dh_low=0; //0: lower row of a double height row
+	if (row>0) { //Find out of there were double height characters in the previous row
+		for (int col=0; col<VD_COLS; col++) {
+			int c=viewdata_get_cell(row-1, col);
+			if (c==0x0d) { //Double height
+				dh_low=1;
+				break;
+			}
+		}
+	}
 	int mosaic=0;
 	int blink=0;
 	int fg=7;
 	int bg=0;
+	int size=0;
 	for (int col=0; col<VD_COLS; col++) {
 		//Fixme: Handle hold mosaics
-		int c=viewdata_get_cell(row, col);
+		int c=-1;
+		if (dh_low==0) c=viewdata_get_cell(row, col);
+		else c=viewdata_get_cell(row-1, col);
+
+
 		if ( ((c>=0x00) && (c<=0x07)) ||
 		     ((c>=0x10) && (c<=0x17))) {
 			fg=c&0x07;
@@ -57,24 +72,34 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 		if (c==0x1c) bg=0; //Black background
 		if (c==0x08) blink=1;
 		if (c==0x09) blink=0;
+		if (c==0x0c) size=0; //normal height
+		if (c==0x0d) size=1; //double height
 
 		cells[col].blink=blink;
 		cells[col].fg=fg;
 		cells[col].bg=bg;
-		cells[col].size=0; //Fixme handle double height
 		
-		if (c<0x20) { //attribute characters
-			cells[col].glyph=0; //...lead to spaces
-		} else if (c>=0x80) {
-			//High bit set
-			cells[col].glyph=0; // set to spaces for now
+		if ( (size==0) && (dh_low==1) ) {
+			//This is a lower double height row, but normal sized characters
+			//blank cell
+			cells[col].glyph=0;
 		} else {
-			if (mosaic==0) cells[col].glyph=c-0x20; else {
-				//mosaik=1
-				int c2=c-0x20;
-				if (c2<0x20) cells[col].glyph=0x60+c2; else //Lower block graphics
-				if (c2<0x40) cells[col].glyph=c2; else //Upper case letters
-				if (c2<0x60) cells[col].glyph=0x80+(c2-0x40); //Upper blockgraphics
+			if (dh_low==0) cells[col].size=size; //If upper row, set to normal or upper
+			else cells[col].size=2; //Otherwise set to lower half
+			
+			if (c<0x20) { //attribute characters
+				cells[col].glyph=0; //...lead to spaces
+			} else if (c>=0x80) {
+				//High bit set
+				cells[col].glyph=0; // set to spaces for now
+			} else {
+				if (mosaic==0) cells[col].glyph=c-0x20; else {
+					//mosaik=1
+					int c2=c-0x20;
+					if (c2<0x20) cells[col].glyph=0x60+c2; else //Lower block graphics
+					if (c2<0x40) cells[col].glyph=c2; else //Upper case letters
+					if (c2<0x60) cells[col].glyph=0x80+(c2-0x40); //Upper blockgraphics
+				}
 			}
 		}
 	}
