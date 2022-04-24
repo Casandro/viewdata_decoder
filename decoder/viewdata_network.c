@@ -52,10 +52,11 @@ int viewdata_handle_socket(const int sockfd)
 	while (0==0) {
 		uint8_t buf[2048];
 		ssize_t rs=read(sockfd, buf, sizeof(buf));
-		if ((rs<0) && (errno==EWOULDBLOCK)) return 0; //No data to process
+		if ((rs<0) && (errno==EWOULDBLOCK)) return sum; //No further data to process
 		if (rs<=0) return rs; //Otherwise an error
 		viewdata_handle_string(buf, rs);
 		sum=sum+rs;
+		if (rs<sizeof(buf)) return sum; //If the buffer wasn't completely filled, return
 	}
 	return sum;
 }

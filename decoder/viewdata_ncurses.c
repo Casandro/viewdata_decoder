@@ -76,14 +76,15 @@ void print_status(int x, int y)
 
 int inputloop()
 {
+	int changes=1;
 	int ch=-1;
 	while (0==0) {
-		update_screen(0,0);
+		if (changes>0) update_screen(0,0); //Only update screen if something has changed
 		print_status(0,25);
 		refresh();
 		ch=getch();
 		if (ch==KEY_F(10)) return 0; else
-		viewdata_handle_stuff(ch);
+		changes=viewdata_handle_stuff(ch);
 	}
 }
 
@@ -102,7 +103,7 @@ int main(int argc, char *argv[])
 	}
 	initscr();
 	keypad(stdscr, TRUE);
-	timeout(300);
+	timeout(30);
 	init_colourpairs();
 	inputloop();
 
