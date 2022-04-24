@@ -11,7 +11,7 @@
 #include "viewdata_screen.h"
 #include "viewdata_interface.h"
 
-void update_row(const int x, const int y, const int row)
+void update_row(const int x, const int y, const int row, const int reveal)
 {
 	viewdata_decoded_cell_t cells[VD_COLS];
 	viewdata_convert_row(row, cells);
@@ -27,15 +27,16 @@ void update_row(const int x, const int y, const int row)
 		if (blink==1) attron(A_BLINK); else attroff(A_BLINK);
 		const char *c=viewdata_glyph_to_utf8(glyph);
 		if (c==NULL) printw("(%d)",glyph); else
+		if ((reveal==0) && (cells[col].concealed==1)) printw(" "); else
 		printw("%s", viewdata_glyph_to_utf8(glyph));
 	}
 }
 
 
-void update_screen(const int x, const int y)
+void update_screen(const int x, const int y, int reveal)
 {
 	for (int row=0; row<VD_ROWS; row++) {
-		update_row(x, y, row);
+		update_row(x, y, row, reveal);
 	}
 	attron(COLOR_PAIR(7));
 }
@@ -90,30 +91,36 @@ void init_colourpairs()
 	init_colourpairs_(7, COLOR_WHITE);
 }
 
-void print_status(int x, int y)
+void print_status(int x, int y, int reveal)
 {
 	move(y, x);
 	struct timeval t;
 	gettimeofday(&t, NULL);
-	printw("Time: %06ld.%06ld; Press _ for Enter, F10 for Exit, F12 debug", t.tv_sec, t.tv_usec);
+	printw("Time: %06ld.%06ld; Press _ for Enter, F10 for Exit, F12 for debug", t.tv_sec, t.tv_usec);
+	if (reveal==0) printw(" F1 for reveal"); else printw(" F1 for conceal");
 }
 
 int inputloop()
 {
 	int debug=0;
+	int reveal=0;
 	int changes=1;
 	int ch=-1;
 	while (0==0) {
 		if (changes>0) {
-			update_screen(0,0); //Only update screen if something has changed
-			print_status(0,25);
+			update_screen(0,0, reveal); //Only update screen if something has changed
+			print_status(0,25, reveal);
 			if (debug!=0) print_debugdata(0,26);
 			refresh();
 		}
 		ch=getch();
+		if (ch==KEY_F(1)) {
+			reveal=(reveal+1)%2;
+			changes=1;
+		}else
 		if (ch==KEY_F(10)) return 0; else
 		if (ch==KEY_F(12)) {
-			debug=(debug+1)%2; 
+			debug=1; 
 			changes=1;
 		}else
 		changes=viewdata_handle_stuff(ch);
