@@ -24,6 +24,8 @@ void update_row(const int x, const int y, const int row)
 		int cpn=bg*8+fg;
 		attron(COLOR_PAIR(cpn));
 		if (blink==1) attron(A_BLINK); else attroff(A_BLINK);
+		const char *c=viewdata_glyph_to_utf8(glyph);
+		if (c==NULL) printw("(%d)",glyph); else
 		printw("%s", viewdata_glyph_to_utf8(glyph));
 	}
 }
