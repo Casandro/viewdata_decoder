@@ -52,6 +52,8 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 		}
 	}
 	int mosaic=0;
+	int last_mosaic_glyph=0;
+	int hold_mosaic=0;
 	int blink=0;
 	int fg=7;
 	int bg=0;
@@ -74,6 +76,7 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 		if (c==0x09) blink=0;
 		if (c==0x0c) size=0; //normal height
 		if (c==0x0d) size=1; //double height
+		if (c==0x1e) hold_mosaic=last_mosaic_glyph; //hold mosaic on
 
 		cells[col].blink=blink;
 		cells[col].fg=fg;
@@ -88,7 +91,7 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 			else cells[col].size=2; //Otherwise set to lower half
 			
 			if (c<0x20) { //attribute characters
-				cells[col].glyph=0; //...lead to spaces
+				cells[col].glyph=hold_mosaic; //...lead to spaces or hold mosaic
 			} else if (c>=0x80) {
 				//High bit set
 				cells[col].glyph=0; // set to spaces for now
@@ -99,8 +102,10 @@ void viewdata_convert_row(const int row, viewdata_decoded_cell_t cells[])
 					if (c2<0x20) cells[col].glyph=0x60+c2; else //Lower block graphics
 					if (c2<0x40) cells[col].glyph=c2; else //Upper case letters
 					if (c2<0x60) cells[col].glyph=0x80+(c2-0x40); //Upper blockgraphics
+					last_mosaic_glyph=cells[col].glyph;
 				}
 			}
 		}
+		if (c==0x1f) hold_mosaic=0; //release mosaics
 	}
 }
