@@ -9,10 +9,10 @@ See `viewdata_ncurses.c` as a basic example.
   - Exact shapes for this can be found in ITU-T E.161 figure 2 and 3.
   - Keypad input should be aranged like this: (If simulating the keypad with a d-pad, it might make sense to use a "cursor" on it, and to either return to # or have a separate button for it.)
 ```
-	123
-	456
-	789
-	⚹0⌗
+	1 2 3
+	4 5 6
+	7 8 9
+	⚹ 0 ⌗
 ```
   - Call `viewdata_handle_stuff()` periodically with -1 to process data that comes from the network.
 - If `viewdata_handle_stuff()` returns with a non-zero value, update your screen.
