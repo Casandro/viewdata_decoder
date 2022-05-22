@@ -47,6 +47,7 @@ void print_font()
 {
 	int charnum=CHAR_NUM;
 	printf("#include <stdint.h>\n");
+	printf("#include \"font.h\"\n");
 	printf("//File generated from tools/generate_font.c based on the Mullard SAA5050 ROM\n");
 	printf("uint8_t font[][%d]={\n", CHAR_HEIGHT);
 	for (int c=0; c<charnum; c++) {
