@@ -1,4 +1,11 @@
-# How to use:
+## How to use as a user:
+```
+cd decoder
+make
+./viewdata_ncurses nx.nxtel.org 23280
+```
+
+## How to use to write your own terminal emulator:
 
 See `viewdata_ncurses.c` as a basic example.
 
